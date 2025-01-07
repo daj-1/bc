@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Book Catalog</h1>
+    <form method="GET" action="{{ url_for('api.index') }}">
+        <input type="text" name="search" placeholder="Search by title, author, genre, or year" value="{{ request.args.get('search', '') }}">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        {% for book in books %}
+            <li>
+                <a href="{{ url_for('api.book_detail', book_id=book.id) }}">{{ book.title }}</a> by {{ book.author }}
+                <a href="{{ url_for('api.edit_book', book_id=book.id) }}">Edit</a>
+                <form action="{{ url_for('api.delete_book', book_id=book.id) }}" method="POST" style="display: inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

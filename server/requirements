@@ -1,0 +1,6 @@
+book_catalog/
+├── app.py
+├── models.py
+├── routes.py
+├── database.db
+└── requirements.txt
