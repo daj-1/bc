@@ -11,23 +11,43 @@ class BookCatalogApp:
         self.load_books()
 
     def create_widgets(self):
-        self.book_listbox = tk.Listbox(self.root, width=50, height=20)
-        self.book_listbox.pack(pady=20)
+        # Set background color and padding for the main window
+        self.root.configure(bg="#f1f8ff")  # Light blue background
+        self.root.geometry("600x400")
         
-        button_frame = tk.Frame(self.root)
+        # Title Label
+        self.title_label = tk.Label(self.root, text="Book Catalog", font=("Helvetica", 24, "bold"), fg="#004b8d", bg="#f1f8ff")
+        self.title_label.pack(pady=20)
+
+        # Listbox for books with enhanced styling
+        self.book_listbox = tk.Listbox(self.root, width=50, height=10, font=("Arial", 12), bg="#e6f0ff", fg="#333", 
+                                       selectbackground="#0066cc", selectforeground="white", bd=0)
+        self.book_listbox.pack(pady=10)
+        
+        # Button Frame with customized buttons
+        button_frame = tk.Frame(self.root, bg="#f1f8ff")
         button_frame.pack(pady=10)
-        
-        self.add_button = tk.Button(button_frame, text="Add Book", command=self.add_book)
-        self.add_button.pack(side=tk.LEFT, padx=5)
-        
-        self.edit_button = tk.Button(button_frame, text="Edit Book", command=self.edit_book)
-        self.edit_button.pack(side=tk.LEFT, padx=5)
-        
-        self.delete_button = tk.Button(button_frame, text="Delete Book", command=self.delete_book)
-        self.delete_button.pack(side=tk.LEFT, padx=5)
-        
-        self.refresh_button = tk.Button(button_frame, text="Refresh", command=self.load_books)
-        self.refresh_button.pack(side=tk.LEFT, padx=5)
+
+        self.add_button = self.create_button(button_frame, "Add Book", self.add_book)
+        self.add_button.pack(side=tk.LEFT, padx=10)
+
+        self.edit_button = self.create_button(button_frame, "Edit Book", self.edit_book)
+        self.edit_button.pack(side=tk.LEFT, padx=10)
+
+        self.delete_button = self.create_button(button_frame, "Delete Book", self.delete_book)
+        self.delete_button.pack(side=tk.LEFT, padx=10)
+
+        self.refresh_button = self.create_button(button_frame, "Refresh", self.load_books)
+        self.refresh_button.pack(side=tk.LEFT, padx=10)
+
+    def create_button(self, parent, text, command):
+        """Helper method to create buttons with consistent styling"""
+        button = tk.Button(parent, text=text, command=command, font=("Helvetica", 12, "bold"), 
+                           bg="#007bff", fg="white", relief="flat", width=12, height=2)
+        button.config(activebackground="#0056b3", activeforeground="white")
+        button.bind("<Enter>", lambda event: button.config(bg="#0056b3"))
+        button.bind("<Leave>", lambda event: button.config(bg="#007bff"))
+        return button
 
     def load_books(self):
         try:
