@@ -95,7 +95,73 @@ class BookCatalogApp:
         save_button.grid(row=len(fields), column=0, columnspan=2, pady=20)
 
     def edit_book(self):
-        pass  # Implementation for editing a book with a similar dialog
+        selected_index = self.book_listbox.curselection()
+        if not selected_index:
+            messagebox.showwarning("Warning", "No book selected")
+            return
+
+        selected_book = self.book_listbox.get(selected_index)
+        book_id = self.get_book_id_by_title(selected_book.split(' by ')[0])
+
+        if book_id is None:
+            messagebox.showerror("Error", "Unable to find book ID")
+            return
+
+        edit_window = tk.Toplevel(self.root)
+        edit_window.title("Edit Book")
+        edit_window.geometry("400x400")
+
+        fields = ["Title", "Author", "Genre", "Year", "Description", "Copies"]
+        entries = {}
+
+        book_details = self.get_book_details(book_id)
+        if not book_details:
+            messagebox.showerror("Error", "Failed to fetch book details")
+            edit_window.destroy()
+            return
+
+        for i, field in enumerate(fields):
+            label = tk.Label(edit_window, text=field, font=("Helvetica", 12))
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="e")
+
+            entry = tk.Entry(edit_window, font=("Helvetica", 12))
+            entry.grid(row=i, column=1, padx=10, pady=5)
+            entries[field] = entry
+
+            # Pre-fill the existing values
+            entry.insert(0, book_details[field.lower()])
+
+        def save_changes():
+            try:
+                updated_data = {
+                    "title": entries["Title"].get(),
+                    "author": entries["Author"].get(),
+                    "genre": entries["Genre"].get(),
+                    "year": int(entries["Year"].get()),
+                    "description": entries["Description"].get(),
+                    "copies": int(entries["Copies"].get())
+                }
+
+                response = requests.put(f"http://127.0.0.1:5000/api/books/{book_id}", json=updated_data)
+                response.raise_for_status()
+                self.load_books()
+                edit_window.destroy()
+            except ValueError:
+                messagebox.showerror("Error", "Invalid input. Please check your entries.")
+            except requests.exceptions.RequestException as e:
+                messagebox.showerror("Error", f"Failed to update book: {e}")
+
+        save_button = tk.Button(edit_window, text="Save", command=save_changes, bg="#007bff", fg="white", font=("Helvetica", 12, "bold"))
+        save_button.grid(row=len(fields), column=0, columnspan=2, pady=20)
+
+    def get_book_details(self, book_id):
+        try:
+            response = requests.get(f"http://127.0.0.1:5000/api/books/{book_id}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error", f"Failed to fetch book details: {e}")
+            return None
 
     def delete_book(self):
         selected_index = self.book_listbox.curselection()
