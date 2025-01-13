@@ -22,6 +22,31 @@ def book_detail(book_id):
     book = Book.query.get_or_404(book_id)
     return render_template('book_detail.html', book=book)
 
+@bp.route('/stats', methods=['GET'])
+def get_stats():
+    # Total number of books
+    total_books = Book.query.count()
+
+    # Distribution of genres
+    genre_distribution = db.session.query(Book.genre, db.func.count(Book.id)).group_by(Book.genre).all()
+    # Convert the result to a list of dictionaries
+    genre_distribution = [{"genre": genre, "count": count} for genre, count in genre_distribution]
+
+    # Most popular author (author with the most books)
+    most_popular_author = db.session.query(Book.author, db.func.count(Book.id)).group_by(Book.author).order_by(db.func.count(Book.id).desc()).first()
+    # Convert the result to a dictionary
+    most_popular_author = {"author": most_popular_author[0], "count": most_popular_author[1]} if most_popular_author else None
+
+    # Prepare statistics data
+    stats = {
+        "total_books": total_books,
+        "genre_distribution": genre_distribution,
+        "most_popular_author": most_popular_author,
+    }
+
+    return jsonify(stats)
+
+
 @bp.route('/add', methods=['GET', 'POST'])
 def add_book():
     if request.method == 'POST':
