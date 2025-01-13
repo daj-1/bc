@@ -8,17 +8,18 @@ class BookCatalogApp:
         self.root.title("Book Catalog")
         
         self.create_widgets()
+        
         self.load_books()
 
     def create_widgets(self):
-        #Window config
+    # Window config
         self.root.configure(bg="#f1f8ff")
         self.root.geometry("600x400")
 
         self.title_label = tk.Label(self.root, text="Book Catalog", font=("Helvetica", 24, "bold"), fg="#004b8d", bg="#f1f8ff")
         self.title_label.pack(pady=20)
 
-        #search
+        # Search
         self.search_frame = tk.Frame(self.root, bg="#f1f8ff")
         self.search_frame.pack(pady=10)
 
@@ -34,16 +35,16 @@ class BookCatalogApp:
         self.clear_search_button = tk.Button(self.search_frame, text="Clear Filters", command=self.clear_filters, font=("Helvetica", 12, "bold"), bg="#d9534f", fg="white", relief="flat")
         self.clear_search_button.grid(row=0, column=3, padx=5)
 
-        #List of books
+        # List of books
         self.book_listbox = tk.Listbox(self.root, width=50, height=10, font=("Arial", 12), bg="#e6f0ff", fg="#333", 
-                                       selectbackground="#0066cc", selectforeground="white", bd=0)
+                                    selectbackground="#0066cc", selectforeground="white", bd=0)
         self.book_listbox.pack(pady=10)
 
-        self.book_listbox = tk.Listbox(self.root, width=50, height=10, font=("Arial", 12), bg="#e6f0ff", fg="#333", 
-                                       selectbackground="#0066cc", selectforeground="white", bd=0)
-        self.book_listbox.pack(pady=10)
+        # Statistics button
+        self.stats_button = tk.Button(self.search_frame, text="Show Stats", command=self.show_stats, font=("Helvetica", 12, "bold"), bg="#28a745", fg="white", relief="flat")
+        self.stats_button.grid(row=0, column=4, padx=10)
 
-        #Buttons
+        # Buttons
         button_frame = tk.Frame(self.root, bg="#f1f8ff")
         button_frame.pack(pady=10)
 
@@ -59,6 +60,46 @@ class BookCatalogApp:
         self.refresh_button = self.create_button(button_frame, "Refresh", self.load_books)
         self.refresh_button.pack(side=tk.LEFT, padx=10)
 
+    def show_stats(self):
+        try:
+            # Make a GET request to the /stats endpoint
+            response = requests.get("http://127.0.0.1:5000/stats")  # Correct URL
+            response.raise_for_status()
+            stats = response.json()
+
+            # Display the statistics
+            total_books = stats.get("total_books", 0)
+            genre_distribution = stats.get("genre_distribution", [])
+            most_popular_author = stats.get("most_popular_author", [])
+
+            # Create a new top-level window to show stats
+            stats_window = tk.Toplevel(self.root)
+            stats_window.title("Statistics")
+            stats_window.geometry("400x300")
+
+            # Display total number of books
+            total_label = tk.Label(stats_window, text=f"Total Books: {total_books}", font=("Helvetica", 12))
+            total_label.pack(pady=10)
+
+            # Display genre distribution
+            genre_label = tk.Label(stats_window, text="Genre Distribution:", font=("Helvetica", 12))
+            genre_label.pack(pady=5)
+
+            for genre, count in genre_distribution:
+                genre_text = f"{genre}: {count} books"
+                genre_info_label = tk.Label(stats_window, text=genre_text, font=("Helvetica", 12))
+                genre_info_label.pack(pady=3)
+
+            # Display most popular author
+            if most_popular_author:
+                author, count = most_popular_author
+                author_label = tk.Label(stats_window, text=f"Most Popular Author: {author} ({count} books)", font=("Helvetica", 12))
+                author_label.pack(pady=10)
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error", f"Failed to fetch statistics: {e}")
+
+
+
     #Button defined
     def create_button(self, parent, text, command):
         button = tk.Button(parent, text=text, command=command, font=("Helvetica", 12, "bold"), 
@@ -67,6 +108,7 @@ class BookCatalogApp:
         button.bind("<Enter>", lambda event: button.config(bg="#0056b3"))
         button.bind("<Leave>", lambda event: button.config(bg="#007bff"))
         return button
+   
 
     #Book loading to the app and serer
     def load_books(self, books=None):
